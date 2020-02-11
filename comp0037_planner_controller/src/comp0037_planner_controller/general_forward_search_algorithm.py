@@ -83,6 +83,17 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         L = sqrt(dX * dX + dY * dY)*cost# Multiplied by the terrain cost of the cell
         
         return L
+
+    def computeLStageAngle(self, parentCell, cell):       
+        # If the parent is empty, this is the start of the path and the
+        # cost is 0.
+        if (parentCell is None):
+            return 0
+        
+        dX = cell.coords[0] - parentCell.coords[0]
+        dY = cell.coords[1] - parentCell.coords[1]
+        rads = atan2(dY, dX)
+        return 180 * (rads / pi)
         
     # The main search routine. The routine searches for a path between a given
     # set of coordinates. These are then converted into start and destination
@@ -124,6 +135,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
 
         # Reset the count
         self.numberOfCellsVisited = 0
+        self.maxQueueSize = 0
 
         # Indicates if we reached the goal or not
         self.goalReached = False
@@ -133,6 +145,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # LaValle's pseudocode
         while (self.isQueueEmpty() == False):
 
+            self.maxQueueSize = max(self.maxQueueSize, self.getQueueSize())
             # Check if ROS is shutting down; if so, abort. This stops the
             # planner from hanging.
             if rospy.is_shutdown():
@@ -162,6 +175,8 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         self.drawCurrentState()
         
         print "numberOfCellsVisited = " + str(self.numberOfCellsVisited)
+
+        print "maxQueueSize = " + str(self.maxQueueSize)
         
         if self.goalReached:
             print "Goal reached"
@@ -191,12 +206,18 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         cell = pathEndCell.parent
         path.travelCost = self.computeLStageAdditiveCost(pathEndCell.parent, pathEndCell)
         
+        currentAngle = self.computeLStageAngle(pathEndCell.parent, pathEndCell)
+
         # Iterate back through and extract each parent in turn and add
         # it to the path. To work out the travel length along the
         # path, you'll also have to add self at self stage.
         while (cell is not None):
             path.waypoints.appendleft(cell)
             path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+
+            newAngle = self.computeLStageAngle(cell.parent, cell)
+            path.totalRotation += abs(newAngle - currentAngle)
+            currentAngle = newAngle
             cell = cell.parent
             
         # Update the stats on the size of the path
@@ -208,6 +229,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
             path.travelCost = float("inf")
 
         print "Path travel cost = " + str(path.travelCost)
+        print "Path total rotation = " + str(path.totalRotation)
         print "Path cardinality = " + str(path.numberOfWaypoints)
         
         # Draw the path if requested

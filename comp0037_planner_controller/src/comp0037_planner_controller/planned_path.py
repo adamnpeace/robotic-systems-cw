@@ -19,3 +19,4 @@ class PlannedPath(object):
         # travel cost of the path.
         self.numberOfWaypoints = 0
         self.travelCost = 0
+        self.totalRotation = 0

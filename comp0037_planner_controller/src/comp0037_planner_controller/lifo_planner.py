@@ -18,6 +18,10 @@ class LIFOPlanner(CellBasedForwardSearch):
     def isQueueEmpty(self):
         return not self.lifoQueue
 
+    # Check the queue size
+    def getQueueSize(self):
+        return len(self.lifoQueue)
+
     # Simply pull from the front of the list
     def popCellFromQueue(self):
         cell = self.lifoQueue.pop()
