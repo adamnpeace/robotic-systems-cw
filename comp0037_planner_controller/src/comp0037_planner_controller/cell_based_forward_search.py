@@ -21,7 +21,7 @@ class CellBasedForwardSearch(GeneralForwardSearchAlgorithm):
     # This method gets the list of cells which potentially could be
     # visited next. Each candidate position has to be tested
     # separately. It encodes the "clock around" logic.
-    def getNextSetOfCellsToBeVisited(self, cell):
+    def getNextSetOfCellsToBeVisited(self, cell, heuristic):
 
         # This stores the set of valid actions / cells
         cells = list()
@@ -30,14 +30,20 @@ class CellBasedForwardSearch(GeneralForwardSearchAlgorithm):
         # don't fall outside the grid and they aren't the cell we
         # started with. The order has been manually written down to
         # create a spiral.
-        self.pushBackCandidateCellIfValid(cell, cells, 0, -1)
-        self.pushBackCandidateCellIfValid(cell, cells, 1, -1)
-        self.pushBackCandidateCellIfValid(cell, cells, 1, 0)
-        self.pushBackCandidateCellIfValid(cell, cells, 1, 1)
-        self.pushBackCandidateCellIfValid(cell, cells, 0, 1)
-        self.pushBackCandidateCellIfValid(cell, cells, -1, 1)
-        self.pushBackCandidateCellIfValid(cell, cells, -1, 0)
-        self.pushBackCandidateCellIfValid(cell, cells, -1, -1)
+        if (heuristic == "Manhattan"):
+            self.pushBackCandidateCellIfValid(cell, cells, 0, -1)
+            self.pushBackCandidateCellIfValid(cell, cells, 1, 0)
+            self.pushBackCandidateCellIfValid(cell, cells, 0, 1)
+            self.pushBackCandidateCellIfValid(cell, cells, -1, 0)
+        else:
+            self.pushBackCandidateCellIfValid(cell, cells, 0, -1)
+            self.pushBackCandidateCellIfValid(cell, cells, 1, -1)
+            self.pushBackCandidateCellIfValid(cell, cells, 1, 0)
+            self.pushBackCandidateCellIfValid(cell, cells, 1, 1)
+            self.pushBackCandidateCellIfValid(cell, cells, 0, 1)
+            self.pushBackCandidateCellIfValid(cell, cells, -1, 1)
+            self.pushBackCandidateCellIfValid(cell, cells, -1, 0)
+            self.pushBackCandidateCellIfValid(cell, cells, -1, -1)
 
         return cells
 

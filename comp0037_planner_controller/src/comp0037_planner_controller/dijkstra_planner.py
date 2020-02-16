@@ -103,7 +103,7 @@ class DijkstraPlanner(CellBasedForwardSearch):
                 self.goalReached = True
                 if not self.useThoroughSearch:
                     break
-            cells = self.getNextSetOfCellsToBeVisited(cell)
+            cells = self.getNextSetOfCellsToBeVisited(cell, None)
             for nextCell in cells:
                 if (self.hasCellBeenVisitedAlready(nextCell) == False):
                     self.markCellAsVisitedAndRecordParent(nextCell, cell)

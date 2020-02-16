@@ -13,7 +13,7 @@ class AStarPlanner(CellBasedForwardSearch):
 
     # Construct the new planner object
     # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan")
-    def __init__(self, title, occupancyGrid, heuristic="Euclidean"):
+    def __init__(self, title, occupancyGrid, heuristic="Manhattan"):
         CellBasedForwardSearch.__init__(self, title, occupancyGrid)
         self.pq = PriorityQueue()
         # Gives us the option to continue even after reaching the goal,
@@ -32,6 +32,20 @@ class AStarPlanner(CellBasedForwardSearch):
         L = sqrt(dX * dX + dY * dY)*cost# Multiplied by the terrain cost of the cell
 
         return L
+
+    def getManhattanDistance(self, cell):
+        dX = cell.coords[0] - self.goal.coords[0]
+        dY = cell.coords[1] - self.goal.coords[1]
+
+        cost = (abs(dX) + abs(dY)) 
+        return cost
+
+    def getOctileDistance(self, cell):
+        dX = abs(cell.coords[0] - self.goal.coords[0])
+        dY = abs(cell.coords[1] - self.goal.coords[1])
+        
+        cost = max(dX, dY) + (sqrt(2) - 1)*min(dX, dY)
+        return cost
 
     # Simply put on the end of the queue
     def pushCellOntoQueue(self, cell):
@@ -59,9 +73,9 @@ class AStarPlanner(CellBasedForwardSearch):
         if self.heuristic == "Euclidean":
             alt = alt + self.getEuclideanToGoal(cell)
         elif self.heuristic == "Octile":
-            pass
+            alt = alt + self.getOctileDistance(cell)
         elif self.heuristic == "Manhattan":
-            pass
+            alt = alt + self.getManhattanDistance(cell)
         else:
             print("Heuristic not recognised, defaulting to Dijkstra")
 
@@ -127,7 +141,7 @@ class AStarPlanner(CellBasedForwardSearch):
             if (self.hasGoalBeenReached(cell) == True):
                 self.goalReached = True
                 break
-            cells = self.getNextSetOfCellsToBeVisited(cell)
+            cells = self.getNextSetOfCellsToBeVisited(cell, self.heuristic)
             for nextCell in cells:
                 if (self.hasCellBeenVisitedAlready(nextCell) == False):
                     self.markCellAsVisitedAndRecordParent(nextCell, cell)
