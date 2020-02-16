@@ -155,7 +155,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
             if (self.hasGoalBeenReached(cell) == True):
                 self.goalReached = True
                 break
-            cells = self.getNextSetOfCellsToBeVisited(cell)
+            cells = self.getNextSetOfCellsToBeVisited(cell, None)
             for nextCell in cells:
                 if (self.hasCellBeenVisitedAlready(nextCell) == False):
                     self.markCellAsVisitedAndRecordParent(nextCell, cell)
