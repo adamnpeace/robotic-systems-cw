@@ -13,7 +13,7 @@ class AStarPlanner(CellBasedForwardSearch):
 
     # Construct the new planner object
     # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan")
-    def __init__(self, title, occupancyGrid, heuristic="Manhattan"):
+    def __init__(self, title, occupancyGrid, heuristic=5):
         CellBasedForwardSearch.__init__(self, title, occupancyGrid)
         self.pq = PriorityQueue()
         # Gives us the option to continue even after reaching the goal,
@@ -70,7 +70,7 @@ class AStarPlanner(CellBasedForwardSearch):
         alt = parentCell.pathCost + self.computeLStageAdditiveCost(parentCell, cell)
         if type(self.heuristic) == int and not self.heuristic < 0:
             alt = alt + self.heuristic
-        if self.heuristic == "Euclidean":
+        elif self.heuristic == "Euclidean":
             alt = alt + self.getEuclideanToGoal(cell)
         elif self.heuristic == "Octile":
             alt = alt + self.getOctileDistance(cell)
