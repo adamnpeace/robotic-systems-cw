@@ -2,6 +2,7 @@
 import rospy
 import threading
 import math
+import time
 
 # Robot pose
 from geometry_msgs.msg import Pose
@@ -31,6 +32,7 @@ class PlannerControllerNode(object):
         self.waitForGoal =  threading.Condition()
         self.waitForDriveCompleted =  threading.Condition()
         self.goal = None
+        self.totalTime = 0
         pass
     
     def createOccupancyGridFromMapServer(self):
@@ -149,7 +151,12 @@ class PlannerControllerNode(object):
             if (self.goal is None):
                 continue
 
+            initialTime = time.time()
             self.driveToGoal(self.goal)
+            endTime = time.time()
+            self.totalTime = endTime - initialTime
+            print("TIME TAKEN FOR STAGE (mins): ", self.totalTime / 60)
+
             self.goal = None
 
             # Signal back to the service handler that we are done
