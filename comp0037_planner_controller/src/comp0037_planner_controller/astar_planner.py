@@ -12,13 +12,15 @@ import rospy
 class AStarPlanner(CellBasedForwardSearch):
 
     # Construct the new planner object
-    # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan")
-    def __init__(self, title, occupancyGrid, heuristic=5):
+    # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan", "Chebyshev")
+    # scale is used for weighted a* 
+    def __init__(self, title, occupancyGrid, heuristic="Cherbyshev", scale=0.5):
         CellBasedForwardSearch.__init__(self, title, occupancyGrid)
         self.pq = PriorityQueue()
         # Gives us the option to continue even after reaching the goal,
         # which is how Dijkstra is implemented classically.
         self.heuristic = heuristic
+        self.scale = scale
 
     def getEuclideanToGoal(self, cell):
         dX = cell.coords[0] - self.goal.coords[0]
@@ -46,6 +48,15 @@ class AStarPlanner(CellBasedForwardSearch):
         
         cost = max(dX, dY) + (sqrt(2) - 1)*min(dX, dY)
         return cost
+    
+    def getCherbyshevDistance(self, cell):
+        dX = abs(cell.coords[0] - self.goal.coords[0])
+        dY = abs(cell.coords[1] - self.goal.coords[1])
+        
+        cost = (dX + dY) - min(dX, dY)
+        return cost
+
+    
 
     # Simply put on the end of the queue
     def pushCellOntoQueue(self, cell):
@@ -69,13 +80,15 @@ class AStarPlanner(CellBasedForwardSearch):
     def resolveDuplicate(self, cell, parentCell):
         alt = parentCell.pathCost + self.computeLStageAdditiveCost(parentCell, cell)
         if type(self.heuristic) == int and not self.heuristic < 0:
-            alt = alt + self.heuristic
+            alt = alt + self.heuristic*self.scale
         elif self.heuristic == "Euclidean":
-            alt = alt + self.getEuclideanToGoal(cell)
+            alt = alt + self.getEuclideanToGoal(cell)*self.scale
         elif self.heuristic == "Octile":
-            alt = alt + self.getOctileDistance(cell)
+            alt = alt + self.getOctileDistance(cell)*self.scale
         elif self.heuristic == "Manhattan":
-            alt = alt + self.getManhattanDistance(cell)
+            alt = alt + self.getManhattanDistance(cell)*self.scale
+        elif self.heuristic == "Cherbyshev":
+            alt = alt + self.getCherbyshevDistance(cell)*self.scale
         else:
             print("Heuristic not recognised, defaulting to Dijkstra")
 
