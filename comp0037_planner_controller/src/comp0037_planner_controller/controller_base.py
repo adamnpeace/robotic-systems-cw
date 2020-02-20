@@ -74,15 +74,36 @@ class ControllerBase(object):
 
         rospy.loginfo('Driving path to goal with ' + str(len(path.waypoints)) + ' waypoint(s)')
         
+        totalDist = 0
+        totalAngle = 0
         # Drive to each waypoint in turn
         for waypointNumber in range(0, len(path.waypoints)):
+            lastPose = [self.pose.x, self.pose.y]
+            lastAngle = round(self.pose.theta, 2)
+
             cell = path.waypoints[waypointNumber]
             waypoint = self.occupancyGrid.getWorldCoordinatesFromCellCoordinates(cell.coords)
             rospy.loginfo("Driving to waypoint (%f, %f)", waypoint[0], waypoint[1])
             self.driveToWaypoint(waypoint)
+
+            dX = lastPose[0] - self.pose.x
+            dY = lastPose[1] - self.pose.y
+            totalDist += sqrt(dX * dX + dY * dY)
+            lastPose = [self.pose.x, self.pose.y]
+
+            newAngle = round(self.pose.theta, 2)
+            dT = newAngle - lastAngle
+
+            totalAngle += abs(dT)
+            
             # Handle ^C
             if rospy.is_shutdown() is True:
                 break
+
+        print "Total distance travelled is" + str(totalDist)
+        print "Total cumulative rotation" + str(180 * totalAngle/pi)
+        totalAngle = 0
+        totalDist = 0
 
         rospy.loginfo('Rotating to goal orientation (' + str(goalOrientation) + ')')
         
