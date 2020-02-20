@@ -14,7 +14,7 @@ class AStarPlanner(CellBasedForwardSearch):
     # Construct the new planner object
     # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan", "Chebyshev")
     # scale is used for weighted a* 
-    def __init__(self, title, occupancyGrid, heuristic="Cherbyshev", scale=0.5):
+    def __init__(self, title, occupancyGrid, heuristic="Octile", scale = 10):
         CellBasedForwardSearch.__init__(self, title, occupancyGrid)
         self.pq = PriorityQueue()
         # Gives us the option to continue even after reaching the goal,
@@ -39,21 +39,24 @@ class AStarPlanner(CellBasedForwardSearch):
         dX = cell.coords[0] - self.goal.coords[0]
         dY = cell.coords[1] - self.goal.coords[1]
 
-        cost = (abs(dX) + abs(dY)) 
+        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
+        cost = (abs(dX) + abs(dY))*weight 
         return cost
 
     def getOctileDistance(self, cell):
         dX = abs(cell.coords[0] - self.goal.coords[0])
         dY = abs(cell.coords[1] - self.goal.coords[1])
         
-        cost = max(dX, dY) + (sqrt(2) - 1)*min(dX, dY)
+        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
+        cost = (max(dX, dY) + (sqrt(2) - 1)*min(dX, dY))*weight
         return cost
     
     def getCherbyshevDistance(self, cell):
         dX = abs(cell.coords[0] - self.goal.coords[0])
         dY = abs(cell.coords[1] - self.goal.coords[1])
         
-        cost = (dX + dY) - min(dX, dY)
+        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
+        cost = ((dX + dY) - min(dX, dY))*weight
         return cost
 
     
@@ -80,14 +83,15 @@ class AStarPlanner(CellBasedForwardSearch):
     def resolveDuplicate(self, cell, parentCell):
         alt = parentCell.pathCost + self.computeLStageAdditiveCost(parentCell, cell)
         if type(self.heuristic) == int and not self.heuristic < 0:
-            alt = alt + self.heuristic*self.scale
+            weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
+            alt = (alt + self.heuristic*self.scale)*weight
         elif self.heuristic == "Euclidean":
             alt = alt + self.getEuclideanToGoal(cell)*self.scale
         elif self.heuristic == "Octile":
             alt = alt + self.getOctileDistance(cell)*self.scale
         elif self.heuristic == "Manhattan":
             alt = alt + self.getManhattanDistance(cell)*self.scale
-        elif self.heuristic == "Cherbyshev":
+        elif self.heuristic == "Chebyshev":
             alt = alt + self.getCherbyshevDistance(cell)*self.scale
         else:
             print("Heuristic not recognised, defaulting to Dijkstra")
