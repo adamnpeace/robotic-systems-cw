@@ -13,7 +13,7 @@ class AStarPlanner(CellBasedForwardSearch):
 
     # Construct the new planner object
     # Possible heuristics (any int > 0, "Euclidean", "Octile", "Manhattan")
-    def __init__(self, title, occupancyGrid, heuristic=5):
+    def __init__(self, title, occupancyGrid, heuristic="Octile"):
         CellBasedForwardSearch.__init__(self, title, occupancyGrid)
         self.pq = PriorityQueue()
         # Gives us the option to continue even after reaching the goal,
