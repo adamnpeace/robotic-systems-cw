@@ -197,11 +197,13 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Construct the path object and mark if the goal was reached
         path = PlannedPath()
         
+        fullPath = PlannedPath()
         path.goalReached = self.goalReached
         
         # Initial condition - the goal cell
         path.waypoints.append(pathEndCell)
                
+        fullPath.waypoints.append(pathEndCell)
         # Start at the goal and find the parent. Find the cost associated with the parent
         cell = pathEndCell.parent
         path.travelCost = self.computeLStageAdditiveCost(pathEndCell.parent, pathEndCell)
@@ -212,16 +214,20 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # it to the path. To work out the travel length along the
         # path, you'll also have to add self at self stage.
         while (cell is not None):
-            path.waypoints.appendleft(cell)
-            path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
-
             newAngle = self.computeLStageAngle(cell.parent, cell)
-            path.totalRotation += abs(newAngle - currentAngle)
+            fullPath.waypoints.appendleft(cell)
+            # Skips all waypoints which are on a line between 2 waypoints
+            if newAngle != currentAngle:
+                path.waypoints.appendleft(cell)
+                path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+
+                newAngle = self.computeLStageAngle(cell.parent, cell)
+                path.totalRotation += abs(newAngle - currentAngle)
             currentAngle = newAngle
             cell = cell.parent
             
         # Update the stats on the size of the path
-        path.numberOfWaypoints = len(path.waypoints)
+        path.numberOfWaypoints = len(fullPath.waypoints)
 
         # Note that if we failed to reach the goal, the above mechanism computes a path length of 0.
         # Therefore, if we didn't reach the goal, change it to infinity
@@ -235,7 +241,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Draw the path if requested
         if (self.showGraphics == True):
             self.plannerDrawer.update()
-            self.plannerDrawer.drawPathGraphicsWithCustomColour(path, colour)
+            self.plannerDrawer.drawPathGraphicsWithCustomColour(fullPath, colour)
             self.plannerDrawer.waitForKeyPress()
         
         # Return the path
