@@ -155,7 +155,7 @@ class PlannerControllerNode(object):
             self.driveToGoal(self.goal)
             endTime = time.time()
             self.totalTime = endTime - initialTime
-            print("TIME TAKEN FOR STAGE (mins): ", self.totalTime / 60)
+            print "TIME TAKEN FOR STAGE (mins): " + str(self.totalTime / 60)
 
             self.goal = None
 
