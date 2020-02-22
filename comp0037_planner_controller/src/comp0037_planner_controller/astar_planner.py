@@ -25,13 +25,7 @@ class AStarPlanner(CellBasedForwardSearch):
     def getEuclideanToGoal(self, cell):
         dX = cell.coords[0] - self.goal.coords[0]
         dY = cell.coords[1] - self.goal.coords[1]
-        # Terrain cost 
-        #  Run this in matlab to visualise ro check the image
-        # However, basically it builds up extremely quickly
-        # x=[1:0.01:2];
-        # c=min(1+(.2./((1.7-x).^2)).^2,1000);       
-        cost=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
-        L = sqrt(dX * dX + dY * dY)*cost# Multiplied by the terrain cost of the cell
+        L = sqrt(dX * dX + dY * dY)
 
         return L
 
@@ -39,24 +33,21 @@ class AStarPlanner(CellBasedForwardSearch):
         dX = cell.coords[0] - self.goal.coords[0]
         dY = cell.coords[1] - self.goal.coords[1]
 
-        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
-        cost = (abs(dX) + abs(dY))*weight 
+        cost = (abs(dX) + abs(dY)) 
         return cost
 
     def getOctileDistance(self, cell):
         dX = abs(cell.coords[0] - self.goal.coords[0])
         dY = abs(cell.coords[1] - self.goal.coords[1])
         
-        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
-        cost = (max(dX, dY) + (sqrt(2) - 1)*min(dX, dY))*weight
+        cost = (max(dX, dY) + (sqrt(2) - 1)*min(dX, dY))
         return cost
     
     def getCherbyshevDistance(self, cell):
         dX = abs(cell.coords[0] - self.goal.coords[0])
         dY = abs(cell.coords[1] - self.goal.coords[1])
         
-        weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
-        cost = ((dX + dY) - min(dX, dY))*weight
+        cost = ((dX + dY) - min(dX, dY))
         return cost
 
     
