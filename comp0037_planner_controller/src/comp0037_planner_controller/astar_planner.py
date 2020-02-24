@@ -43,7 +43,7 @@ class AStarPlanner(CellBasedForwardSearch):
         cost = (max(dX, dY) + (sqrt(2) - 1)*min(dX, dY))
         return cost
     
-    def getCherbyshevDistance(self, cell):
+    def getChebyshevDistance(self, cell):
         dX = abs(cell.coords[0] - self.goal.coords[0])
         dY = abs(cell.coords[1] - self.goal.coords[1])
         
@@ -74,8 +74,7 @@ class AStarPlanner(CellBasedForwardSearch):
     def resolveDuplicate(self, cell, parentCell):
         alt = parentCell.pathCost + self.computeLStageAdditiveCost(parentCell, cell)
         if type(self.heuristic) == int and not self.heuristic < 0:
-            weight=min(1+(0.2/((1.75-cell.terrainCost)**2))**2, 1000)
-            alt = (alt + self.heuristic*self.scale)*weight
+            alt = (alt + self.heuristic*self.scale)
         elif self.heuristic == "Euclidean":
             alt = alt + self.getEuclideanToGoal(cell)*self.scale
         elif self.heuristic == "Octile":
@@ -83,7 +82,7 @@ class AStarPlanner(CellBasedForwardSearch):
         elif self.heuristic == "Manhattan":
             alt = alt + self.getManhattanDistance(cell)*self.scale
         elif self.heuristic == "Chebyshev":
-            alt = alt + self.getCherbyshevDistance(cell)*self.scale
+            alt = alt + self.getChebyshevDistance(cell)*self.scale
         else:
             print("Heuristic not recognised, defaulting to Dijkstra")
 
