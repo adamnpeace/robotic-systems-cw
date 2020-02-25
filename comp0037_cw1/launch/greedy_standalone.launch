@@ -1,0 +1,10 @@
+<launch>
+  <!-- Note how the map is loaded. Use this to load other maps -->
+  <arg name="map_file" default="$(find comp0037_resources)/maps/empty.yaml"/>  
+  <rosparam command="load" file="$(find comp0037_resources)/maps/empty_poses.yaml" />
+  <!--  -->
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <node pkg="comp0037_planner_controller" required="true" output='screen' name="greedy_standalone_node" type="greedy_standalone_node.py"/>
+</launch>
+
+  

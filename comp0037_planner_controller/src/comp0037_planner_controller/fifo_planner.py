@@ -23,6 +23,10 @@ class FIFOPlanner(CellBasedForwardSearch):
     def isQueueEmpty(self):
         return not self.fifoQueue
 
+    # Check the queue size
+    def getQueueSize(self):
+        return len(self.fifoQueue)
+
     # Simply pull from the front of the list
     def popCellFromQueue(self):
         cell = self.fifoQueue.popleft()
