@@ -22,6 +22,10 @@ class ExplorerNode(ExplorerNodeBase):
 #         for coords in self.blackList:
 #             print str(coords)
 
+        candidateGood = False
+        destination = None
+        smallestD2 = float('inf')
+
         for x in range(0, self.occupancyGrid.getWidthInCells()):
             for y in range(0, self.occupancyGrid.getHeightInCells()):
                 candidate = (x, y)
@@ -31,11 +35,17 @@ class ExplorerNode(ExplorerNodeBase):
                         if self.blackList[k] == candidate:
                             candidateGood = False
                             break
-
+                    
                     if candidateGood is True:
-                        return True, candidate
+                        d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
 
-        return False, None
+                        if (d2 < smallestD2):
+                            destination = candidate
+                            smallestD2 = d2
+
+        # If we got a good candidate, use it
+
+        return candidateGood, destination
 
     def destinationReached(self, goal, goalReached):
         if goalReached is False:
