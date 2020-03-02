@@ -38,7 +38,10 @@ class ReactivePlannerController(PlannerControllerBase):
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
 
-        pass
+        for cell in self.currentPlannedPath.waypoints:
+            if self.occupancyGrid.getCell(cell.coords[0], cell.coords[1]) == 1:#CellLabel.OBSTRUCTED:
+                self.controller.stopDrivingToCurrentGoal()
+                return
     
     def driveToGoal(self, goal):
 
