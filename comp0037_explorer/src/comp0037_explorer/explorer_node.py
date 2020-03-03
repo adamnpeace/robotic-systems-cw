@@ -1,4 +1,6 @@
 import rospy
+from geometry_msgs.msg  import Pose2D
+from nav_msgs.msg import Odometry
 
 from explorer_node_base import ExplorerNodeBase
 
@@ -11,6 +13,25 @@ class ExplorerNode(ExplorerNodeBase):
         ExplorerNodeBase.__init__(self)
 
         self.blackList = []
+
+        rospy.wait_for_message('/robot0/odom', Odometry)
+        self.currentOdometrySubscriber = rospy.Subscriber('/robot0/odom', Odometry, self.odometryCallback)
+
+        # Set the pose to an initial value to stop things crashing
+        self.currentCoords = (0, 0)
+    
+    # Get the pose of the robot. Store this in a Pose2D structure because
+    # this is easy to use. Use radians for angles because these are used
+    # inside the control system.
+    def odometryCallback(self, odometry):
+        odometryPose = odometry.pose.pose
+
+        pose = Pose2D()
+
+        position = odometryPose.position
+        
+        currentRWCoords= (position.x,position.y)
+        self.currentCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(currentRWCoords)
 
     def updateFrontiers(self):
         pass
@@ -37,7 +58,7 @@ class ExplorerNode(ExplorerNodeBase):
                             break
                     
                     if candidateGood is True:
-                        d2 = candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2
+                        d2 = (candidate[0] - self.currentCoords[0])**2+(candidate[1] - self.currentCoords[0])**2
 
                         if (d2 < smallestD2):
                             destination = candidate
