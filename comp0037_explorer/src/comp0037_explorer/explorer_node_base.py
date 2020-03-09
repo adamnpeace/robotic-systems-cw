@@ -13,6 +13,8 @@ class ExplorerNodeBase(object):
 
     def __init__(self):
         rospy.init_node('explorer')
+        self.visited = list()
+        self.frontiers = list()
 
         # Get the drive robot service
         rospy.loginfo('Waiting for service drive_to_goal')
