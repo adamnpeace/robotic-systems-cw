@@ -126,6 +126,7 @@ class ExplorerNode(ExplorerNodeBase):
         self.frontiers.append(newFrontier)
 
     def updateFrontiers(self):
+        self.frontiers = []
         lq = list()
         visited = list()
         start = Cell((10, int(0.5*self.occupancyGrid.getHeightInCells())))
