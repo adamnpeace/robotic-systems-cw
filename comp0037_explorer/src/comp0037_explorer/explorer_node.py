@@ -69,7 +69,7 @@ class ExplorerNode(ExplorerNodeBase):
 
     def isInFrontiers(self, cell):
         for frontier in self.frontiers:
-            if isIn(cell, frontier.nodes):
+            if self.isIn(cell, frontier.nodes):
                 return True
         return False
 
@@ -123,6 +123,7 @@ class ExplorerNode(ExplorerNodeBase):
                 if not self.isIn(newCell, newFrontier.nodes) and not self.isIn(newCell, lq) and not self.isInFrontiers(newCell):
                     visited.append(newCell)
                     lq.append(newCell)
+        self.frontiers.append(newFrontier)
 
     def updateFrontiers(self):
         lq = list()
@@ -145,6 +146,7 @@ class ExplorerNode(ExplorerNodeBase):
         return self.frontiers != []
 
     def chooseNewDestination(self):
+        self.updateFrontiers()
         candidateGood = bool(self.frontiers)
         destination = None
         largestWidth = 0
@@ -153,7 +155,7 @@ class ExplorerNode(ExplorerNodeBase):
             candidate = (frontier.center().coords[0], frontier.center().coords[1])
             if candidate in self.blackList:
                 continue
-            if self.heuristic == "width" and frontier.width() > largeestWidth:
+            if self.heuristic == "width" and frontier.width() > largestWidth:
                 destination = candidate
                 largestWidth = frontier.width()
             elif self.heuristic == "euclidean":
