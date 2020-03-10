@@ -110,6 +110,8 @@ class ExplorerNode(ExplorerNodeBase):
         newFrontier = Frontier()
         lq = list()
         visited = list()
+        if self.isIn(startCell, newFrontier.nodes) or self.isIn(startCell, lq) or self.isInFrontiers(startCell):
+            return False
         visited.append(startCell)
         lq.append(startCell)
 
