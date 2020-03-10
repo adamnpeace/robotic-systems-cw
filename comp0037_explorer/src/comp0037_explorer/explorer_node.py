@@ -1,4 +1,5 @@
 import rospy
+import math
 from frontier import Frontier
 
 from explorer_node_base import ExplorerNodeBase
