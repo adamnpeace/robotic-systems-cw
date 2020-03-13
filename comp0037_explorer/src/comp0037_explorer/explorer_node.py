@@ -17,7 +17,9 @@ class Cell(object):
 
 class ExplorerNode(ExplorerNodeBase):
 
-    def __init__(self, heuristic="width"):
+    start = Cell((0,0))
+
+    def __init__(self, heuristic="euclidean"):
         ExplorerNodeBase.__init__(self)
 
         self.blackList = []
@@ -131,7 +133,7 @@ class ExplorerNode(ExplorerNodeBase):
                     visited.append(newCell)
                     lq.append(newCell)
                     # newFrontier.nodes.append(newCell)
-        if (newFrontier.width() > 1):
+        if (newFrontier.width() > 3):
             #print("adding a frontier of size ", newFrontier.width())
             self.frontiers.append(newFrontier)
 
@@ -139,9 +141,10 @@ class ExplorerNode(ExplorerNodeBase):
         self.frontiers = []
         lq = list()
         visited = list()
-        start = Cell((10, int(0.5*self.occupancyGrid.getHeightInCells())))
-        visited.append(start)
-        lq.append(start)
+        if (ExplorerNode.start.coords[0] == 0 and ExplorerNode.start.coords[1] == 0):
+            ExplorerNode.start = Cell((10, int(0.5*self.occupancyGrid.getHeightInCells())))
+        visited.append(ExplorerNode.start)
+        lq.append(ExplorerNode.start)
 
         while len(lq) != 0:
             cell = lq[0]
@@ -171,10 +174,11 @@ class ExplorerNode(ExplorerNodeBase):
                 destination = candidate
                 largestWidth = frontier.width()
             elif self.heuristic == "euclidean":
-                dist = math.sqrt(candidate[0]**2+(candidate[1]-0.5*self.occupancyGrid.getHeightInCells())**2)
+                dist = math.sqrt((candidate[0]-ExplorerNode.start.coords[0])**2+(candidate[1]-ExplorerNode.start.coords[1])**2)
                 if (dist < smallestDist):
                     destination = candidate
                     smallestDist = dist
+        ExplorerNode.start = Cell((destination[0], destination[1]))
         return candidateGood, destination
 
     def destinationReached(self, goal, goalReached):
