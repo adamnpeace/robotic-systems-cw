@@ -68,7 +68,7 @@ class ExplorerNodeBase(object):
         self.deltaOccupancyGrid.updateGridFromVector(msg.deltaOccupancyGrid)
         
         # Update the frontiers
-        self.updateFrontiers()
+        # self.updateFrontiers()
 
         # Flag there's something to show graphically
         self.visualisationUpdateRequired = True
@@ -191,6 +191,9 @@ class ExplorerNodeBase(object):
 
                 # Create a new robot waypoint if required
                 newDestinationAvailable, newDestination = self.explorer.chooseNewDestination()
+
+                if (newDestination == None):
+                    self.completed = True
 
                 # Convert to world coordinates, because this is what the robot understands
                 if newDestinationAvailable is True:

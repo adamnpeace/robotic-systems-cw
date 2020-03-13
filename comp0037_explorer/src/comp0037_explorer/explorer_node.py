@@ -115,6 +115,8 @@ class ExplorerNode(ExplorerNodeBase):
         visited.append(startCell)
         lq.append(startCell)
 
+        i = 0
+
         while len(lq) != 0:
             cell = lq[0]
             lq = lq[1:]
@@ -122,11 +124,16 @@ class ExplorerNode(ExplorerNodeBase):
             newFrontier.nodes.append(cell)
 
             newCells = self.getNextFrontierCells(cell)
+            #print("newcells size ", len(newCells))
             for newCell in newCells:
+                # newFrontier.nodes.append(newCell)
                 if not self.isIn(newCell, newFrontier.nodes) and not self.isIn(newCell, lq) and not self.isInFrontiers(newCell):
                     visited.append(newCell)
                     lq.append(newCell)
-        self.frontiers.append(newFrontier)
+                    # newFrontier.nodes.append(newCell)
+        if (newFrontier.width() > 1):
+            #print("adding a frontier of size ", newFrontier.width())
+            self.frontiers.append(newFrontier)
 
     def updateFrontiers(self):
         self.frontiers = []
@@ -145,6 +152,7 @@ class ExplorerNode(ExplorerNodeBase):
             newCells = self.getNextCells(cell)
             for newCell in newCells:
                 if not self.isIn(newCell, visited) and not self.isIn(newCell, lq) and not self.isInFrontiers(newCell):
+                    #print("appending a cell", newCell.coords[0], newCell.coords[1])
                     visited.append(newCell)
                     lq.append(newCell)
         return self.frontiers != []
