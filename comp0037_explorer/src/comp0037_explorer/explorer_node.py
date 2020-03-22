@@ -19,7 +19,7 @@ class ExplorerNode(ExplorerNodeBase):
 
     start = Cell((0,0))
 
-    def __init__(self, heuristic="euclidean"):
+    def __init__(self, heuristic="width"):
         ExplorerNodeBase.__init__(self)
 
         self.blackList = []
@@ -178,6 +178,13 @@ class ExplorerNode(ExplorerNodeBase):
                 if (dist < smallestDist):
                     destination = candidate
                     smallestDist = dist
+        
+        ### DELETE THIS LATER THIS IS A TEST ###
+        #destination = None
+        ### END OF THEST ###
+
+        if (destination == None):
+            return None, None
         ExplorerNode.start = Cell((destination[0], destination[1]))
         return candidateGood, destination
 

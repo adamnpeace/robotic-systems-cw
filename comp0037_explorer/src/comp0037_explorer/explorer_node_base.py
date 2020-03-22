@@ -179,8 +179,8 @@ class ExplorerNodeBase(object):
             return self.completed
 
         def run(self):
-
             self.running = True
+            counter = 0
 
             while (rospy.is_shutdown() is False) & (self.completed is False):
 
@@ -200,7 +200,14 @@ class ExplorerNodeBase(object):
                     print 'newDestination = ' + str(newDestination)
                     newDestinationInWorldCoordinates = self.explorer.occupancyGrid.getWorldCoordinatesFromCellCoordinates(newDestination)
                     attempt = self.explorer.sendGoalToRobot(newDestinationInWorldCoordinates)
-                    self.explorer.destinationReached(newDestination, attempt)
+                    if (attempt == False):
+                        counter += 1
+                        if (counter == 3):
+                            self.completed = True
+                            return
+                    else:
+                        counter = 0
+                        self.explorer.destinationReached(newDestination, attempt)
                 else:
                     self.completed = True
                     
