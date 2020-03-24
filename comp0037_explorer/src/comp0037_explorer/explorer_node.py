@@ -178,10 +178,6 @@ class ExplorerNode(ExplorerNodeBase):
                 if (dist < smallestDist):
                     destination = candidate
                     smallestDist = dist
-        
-        ### DELETE THIS LATER THIS IS A TEST ###
-        #destination = None
-        ### END OF THEST ###
 
         if (destination == None):
             return None, None

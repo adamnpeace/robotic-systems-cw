@@ -181,7 +181,7 @@ class ExplorerNodeBase(object):
         def run(self):
             self.running = True
             counter = 0
-
+            
             while (rospy.is_shutdown() is False) & (self.completed is False):
 
                 # Special case. If this is the first time everything
@@ -209,6 +209,15 @@ class ExplorerNodeBase(object):
                         counter = 0
                         self.explorer.destinationReached(newDestination, attempt)
                 else:
+                    numUnseen = 0
+                    for x in range(0, self.explorer.occupancyGrid.getWidthInCells()):
+                        for y in range(0, self.explorer.occupancyGrid.getHeightInCells()):
+                            # print("self x y", x, y, self.occupancyGrid.getCell(x, y))
+                            if self.explorer.occupancyGrid.getCell(x, y) == 0.5:
+                                numUnseen += 1
+                    totalCells = self.explorer.occupancyGrid.getWidthInCells() * self.explorer.occupancyGrid.getHeightInCells()
+                    coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
+                    print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
                     self.completed = True
                     
        

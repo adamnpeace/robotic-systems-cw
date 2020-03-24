@@ -14,19 +14,9 @@ class PassivePlannerController(PlannerControllerBase):
 
     def __init__(self, occupancyGrid, planner, controller):
         PlannerControllerBase.__init__(self, occupancyGrid, planner, controller)
-        self.mapUpdateSubscriber = rospy.Subscriber('updated_map', MapUpdate, self.mapUpdateCallback)
-        self.gridUpdateLock =  threading.Condition()
 
     def mapUpdateCallback(self, mapUpdateMessage):
-        # Update the occupancy grid and search grid given the latest map update
-        self.gridUpdateLock.acquire()
-        self.occupancyGrid.updateGridFromVector(mapUpdateMessage.occupancyGrid)
-        self.planner.handleChangeToOccupancyGrid()
-        self.gridUpdateLock.release()
-
-        # If we are not currently following any route, drop out here.
-        if self.currentPlannedPath is None:
-            return
+        pass
     
     def driveToGoal(self, goal):
         # Exit if we need to
@@ -55,17 +45,4 @@ class PassivePlannerController(PlannerControllerBase):
 
         # Drive along the path the goal
         goalReached = self.controller.drivePathToGoal(self.currentPlannedPath, goal.theta, self.planner.getPlannerDrawer())
-
-        numUnseen = 0
-        for x in range(0, self.occupancyGrid.getWidthInCells()):
-            for y in range(0, self.occupancyGrid.getHeightInCells()):
-                # print("self x y", x, y, self.occupancyGrid.getCell(x, y))
-                if self.occupancyGrid.getCell(x, y) == 0.5:
-                    numUnseen += 1
-        totalCells = self.occupancyGrid.getWidthInCells() * self.occupancyGrid.getHeightInCells()
-        coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
-        print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
-
-        rospy.logerr('goalReached=%d', goalReached)
-
         return goalReached
