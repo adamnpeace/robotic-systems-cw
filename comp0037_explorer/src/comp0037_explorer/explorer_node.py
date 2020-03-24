@@ -117,8 +117,6 @@ class ExplorerNode(ExplorerNodeBase):
         visited.append(startCell)
         lq.append(startCell)
 
-        i = 0
-
         while len(lq) != 0:
             cell = lq[0]
             lq = lq[1:]
