@@ -88,7 +88,7 @@ class ReactivePlannerController(PlannerControllerBase):
                     if self.occupancyGrid.getCell(x, y) == 0.5:
                         numUnseen += 1
             totalCells = self.occupancyGrid.getWidthInCells() * self.occupancyGrid.getHeightInCells()
-            coverage = ((1000*float(numUnseen)/float(totalCells))//1)/10
+            coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
             print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
 
             rospy.logerr('goalReached=%d', goalReached)

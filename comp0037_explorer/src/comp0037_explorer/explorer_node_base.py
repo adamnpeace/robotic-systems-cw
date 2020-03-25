@@ -13,6 +13,8 @@ class ExplorerNodeBase(object):
 
     def __init__(self):
         rospy.init_node('explorer')
+        self.visited = list()
+        self.frontiers = list()
 
         # Get the drive robot service
         rospy.loginfo('Waiting for service drive_to_goal')
@@ -66,7 +68,7 @@ class ExplorerNodeBase(object):
         self.deltaOccupancyGrid.updateGridFromVector(msg.deltaOccupancyGrid)
         
         # Update the frontiers
-        self.updateFrontiers()
+        # self.updateFrontiers()
 
         # Flag there's something to show graphically
         self.visualisationUpdateRequired = True
@@ -177,9 +179,11 @@ class ExplorerNodeBase(object):
             return self.completed
 
         def run(self):
-
             self.running = True
+            counter = 0
 
+            shut = False
+         
             while (rospy.is_shutdown() is False) & (self.completed is False):
 
                 # Special case. If this is the first time everything
@@ -188,15 +192,43 @@ class ExplorerNodeBase(object):
                 
 
                 # Create a new robot waypoint if required
-                newDestinationAvailable, newDestination = self.explorer.chooseNewDestination()
+                if not shut:
+                    newDestinationAvailable, newDestination = self.explorer.chooseNewDestination()
 
+
+
+                if (newDestination == None):
+                    numUnseen = 0
+                    for x in range(0, self.explorer.occupancyGrid.getWidthInCells()):
+                        for y in range(0, self.explorer.occupancyGrid.getHeightInCells()):
+                            if self.explorer.occupancyGrid.getCell(x, y) == 0.5:
+                                numUnseen += 1
+                    totalCells = self.explorer.occupancyGrid.getWidthInCells() * self.explorer.occupancyGrid.getHeightInCells()
+                    coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
+                    print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
+                    self.completed = True
                 # Convert to world coordinates, because this is what the robot understands
-                if newDestinationAvailable is True:
+                elif newDestinationAvailable is True:
                     print 'newDestination = ' + str(newDestination)
                     newDestinationInWorldCoordinates = self.explorer.occupancyGrid.getWorldCoordinatesFromCellCoordinates(newDestination)
                     attempt = self.explorer.sendGoalToRobot(newDestinationInWorldCoordinates)
-                    self.explorer.destinationReached(newDestination, attempt)
+                    if (attempt == False):
+                        counter += 1
+                        if (counter == 3):
+                            newDestination = None
+                            shut = True
+                    else:
+                        counter = 0
+                        self.explorer.destinationReached(newDestination, attempt)
                 else:
+                    numUnseen = 0
+                    for x in range(0, self.explorer.occupancyGrid.getWidthInCells()):
+                        for y in range(0, self.explorer.occupancyGrid.getHeightInCells()):
+                            if self.explorer.occupancyGrid.getCell(x, y) == 0.5:
+                                numUnseen += 1
+                    totalCells = self.explorer.occupancyGrid.getWidthInCells() * self.explorer.occupancyGrid.getHeightInCells()
+                    coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
+                    print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
                     self.completed = True
                     
        
