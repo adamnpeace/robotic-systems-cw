@@ -91,6 +91,22 @@ class MapperNode(object):
         self.mostRecentTwist = Twist();
         self.twistSubscriber = rospy.Subscriber('/robot0/cmd_vel', Twist, self.twistCallback, queue_size=1)
         self.laserSubscriber = rospy.Subscriber("robot0/laser_0", LaserScan, self.laserScanCallback, queue_size=1)
+        self.timer = rospy.Timer(rospy.Duration(5), self.entropyCallback)
+
+    def entropyCallback(self, msg):
+        self.dataCopyLock.acquire()
+        numUnseen = 0
+        for x in range(0, self.occupancyGrid.getWidthInCells()):
+            for y in range(0, self.occupancyGrid.getHeightInCells()):
+                if self.occupancyGrid.getCell(x, y) == 0.5:
+                    numUnseen += 1
+        entropy = np.log(2) * numUnseen
+        entropy_str = str(entropy)
+        print "Current entropy is:", entropy_str
+        path = "/media/psf/Home/dev/entropy.csv"
+        with open(path, "a") as fw:
+            fw.write(entropy_str + "\n")
+        self.dataCopyLock.release()
 
     def odometryCallback(self, msg):
         self.dataCopyLock.acquire()
