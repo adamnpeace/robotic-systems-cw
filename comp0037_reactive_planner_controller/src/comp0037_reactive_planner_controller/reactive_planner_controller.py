@@ -38,7 +38,10 @@ class ReactivePlannerController(PlannerControllerBase):
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
 
-        pass
+        for cell in self.currentPlannedPath.waypoints:
+            if self.occupancyGrid.getCell(cell.coords[0], cell.coords[1]) == 1:#CellLabel.OBSTRUCTED:
+                self.controller.stopDrivingToCurrentGoal()
+                return
     
     def driveToGoal(self, goal):
 
@@ -79,6 +82,14 @@ class ReactivePlannerController(PlannerControllerBase):
             # stopDrivingToCurrentGoal method is called.
             goalReached = self.controller.drivePathToGoal(self.currentPlannedPath, \
                                                           goal.theta, self.planner.getPlannerDrawer())
+            numUnseen = 0
+            for x in range(0, self.occupancyGrid.getWidthInCells()):
+                for y in range(0, self.occupancyGrid.getHeightInCells()):
+                    if self.occupancyGrid.getCell(x, y) == 0.5:
+                        numUnseen += 1
+            totalCells = self.occupancyGrid.getWidthInCells() * self.occupancyGrid.getHeightInCells()
+            coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
+            print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
 
             rospy.logerr('goalReached=%d', goalReached)
 

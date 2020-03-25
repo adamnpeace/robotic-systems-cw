@@ -4,9 +4,13 @@
 
 import rospy
 
-from comp0037_reactive_planner_controller.planner_controller_base import PlannerControllerBase
+import threading
+from cell import CellLabel
+from planner_controller_base import PlannerControllerBase
+from comp0037_mapper.msg import *
 
 class PassivePlannerController(PlannerControllerBase):
+    seen = []
 
     def __init__(self, occupancyGrid, planner, controller):
         PlannerControllerBase.__init__(self, occupancyGrid, planner, controller)
@@ -15,7 +19,6 @@ class PassivePlannerController(PlannerControllerBase):
         pass
     
     def driveToGoal(self, goal):
-
         # Exit if we need to
         if rospy.is_shutdown() is True:
             return False
@@ -42,5 +45,4 @@ class PassivePlannerController(PlannerControllerBase):
 
         # Drive along the path the goal
         goalReached = self.controller.drivePathToGoal(self.currentPlannedPath, goal.theta, self.planner.getPlannerDrawer())
-
         return goalReached
