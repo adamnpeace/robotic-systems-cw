@@ -181,7 +181,9 @@ class ExplorerNodeBase(object):
         def run(self):
             self.running = True
             counter = 0
-            
+
+            shut = False
+         
             while (rospy.is_shutdown() is False) & (self.completed is False):
 
                 # Special case. If this is the first time everything
@@ -190,30 +192,31 @@ class ExplorerNodeBase(object):
                 
 
                 # Create a new robot waypoint if required
-                newDestinationAvailable, newDestination = self.explorer.chooseNewDestination()
+                if not shut:
+                    newDestinationAvailable, newDestination = self.explorer.chooseNewDestination()
+
+
 
                 if (newDestination == None):
                     numUnseen = 0
                     for x in range(0, self.explorer.occupancyGrid.getWidthInCells()):
                         for y in range(0, self.explorer.occupancyGrid.getHeightInCells()):
-                            # print("self x y", x, y, self.occupancyGrid.getCell(x, y))
                             if self.explorer.occupancyGrid.getCell(x, y) == 0.5:
                                 numUnseen += 1
                     totalCells = self.explorer.occupancyGrid.getWidthInCells() * self.explorer.occupancyGrid.getHeightInCells()
                     coverage = 100 - ((1000*float(numUnseen)/float(totalCells))//1)/10
                     print "Number of cells unseen:", numUnseen, "out of", totalCells, "giving", coverage, "% coverage."
                     self.completed = True
-
                 # Convert to world coordinates, because this is what the robot understands
-                if newDestinationAvailable is True:
+                elif newDestinationAvailable is True:
                     print 'newDestination = ' + str(newDestination)
                     newDestinationInWorldCoordinates = self.explorer.occupancyGrid.getWorldCoordinatesFromCellCoordinates(newDestination)
                     attempt = self.explorer.sendGoalToRobot(newDestinationInWorldCoordinates)
                     if (attempt == False):
                         counter += 1
                         if (counter == 3):
-                            self.completed = True
-                            return
+                            newDestination = None
+                            shut = True
                     else:
                         counter = 0
                         self.explorer.destinationReached(newDestination, attempt)
@@ -221,7 +224,6 @@ class ExplorerNodeBase(object):
                     numUnseen = 0
                     for x in range(0, self.explorer.occupancyGrid.getWidthInCells()):
                         for y in range(0, self.explorer.occupancyGrid.getHeightInCells()):
-                            # print("self x y", x, y, self.occupancyGrid.getCell(x, y))
                             if self.explorer.occupancyGrid.getCell(x, y) == 0.5:
                                 numUnseen += 1
                     totalCells = self.explorer.occupancyGrid.getWidthInCells() * self.explorer.occupancyGrid.getHeightInCells()

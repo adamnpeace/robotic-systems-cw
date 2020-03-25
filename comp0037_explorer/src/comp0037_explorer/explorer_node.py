@@ -19,7 +19,7 @@ class ExplorerNode(ExplorerNodeBase):
 
     start = Cell((0,0))
 
-    def __init__(self, heuristic="width"):
+    def __init__(self, heuristic="euclidean"):
         ExplorerNodeBase.__init__(self)
 
         self.blackList = []
