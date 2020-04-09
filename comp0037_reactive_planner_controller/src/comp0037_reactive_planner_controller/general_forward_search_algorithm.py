@@ -91,6 +91,17 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         
         return L
 
+    def computeLStageAngle(self, parentCell, cell):       
+        # If the parent is empty, this is the start of the path and the
+        # cost is 0.
+        if (parentCell is None):
+            return 0
+        
+        dX = cell.coords[0] - parentCell.coords[0]
+        dY = cell.coords[1] - parentCell.coords[1]
+        rads = atan2(dY, dX)
+        return 180 * (rads / pi)
+
     # Setup the occupancy grid
     def setupOccupancyGrid(self):
         self.searchGrid = SearchGrid.fromOccupancyGrid(self.occupancyGrid, self.robotRadius)
@@ -206,9 +217,10 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
     # valid. In this case, the path will probably not terminate at the
     # start cell.
     def extractPathEndingAtCell(self, pathEndCell, colour):
-
+        speedUp = False
         # Construct the path object and mark if the goal was reached
         path = PlannedPath()
+        fullPath = PlannedPath()
 
         path.goalReached = self.goalReached
 
@@ -219,21 +231,33 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         if (self.removeGoalCellFromPathIfOccupied is False) or \
            (self.goalCellLabel is not CellLabel.OBSTRUCTED):
             path.waypoints.append(pathEndCell)
+            fullPath.waypoints.append(pathEndCell)
             
         # Start at the goal and find the parent. Find the cost associated with the parent
         cell = pathEndCell.parent
         path.travelCost = self.computeLStageAdditiveCost(pathEndCell.parent, pathEndCell)
         
+        currentAngle = self.computeLStageAngle(pathEndCell.parent, pathEndCell)
+
         # Iterate back through and extract each parent in turn and add
         # it to the path. To work out the travel length along the
         # path, you'll also have to add self at self stage.
         while (cell is not None):
-            path.waypoints.appendleft(cell)
-            path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+            # path.waypoints.appendleft(cell)
+            # path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+
+            newAngle = self.computeLStageAngle(cell.parent, cell)
+            fullPath.waypoints.appendleft(cell)
+            # Skips all waypoints which are on a line between 2 waypoints
+            if newAngle != currentAngle:
+                path.waypoints.appendleft(cell)
+                path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+
+                newAngle = self.computeLStageAngle(cell.parent, cell)
             cell = cell.parent
             
         # Update the stats on the size of the path
-        path.numberOfWaypoints = len(path.waypoints)
+        path.numberOfWaypoints = len(fullPath.waypoints)
 
         # Note that if we failed to reach the goal, the above mechanism computes a path length of 0.
         # Therefore, if we didn't reach the goal, change it to infinity
@@ -246,11 +270,13 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Draw the path if requested
         if (self.showGraphics == True):
             self.searchGridDrawer.update()
-            self.searchGridDrawer.drawPathGraphicsWithCustomColour(path, colour)
+            # self.searchGridDrawer.drawPathGraphicsWithCustomColour(path, colour)
+            self.searchGridDrawer.drawPathGraphicsWithCustomColour(fullPath, colour)
             self.searchGridDrawer.waitForKeyPress()
-        
+        if speedUp:
+            return path
         # Return the path
-        return path
+        return fullPath
 
     # Extract the path from a specified end cell to the start. This is not
     # necessarily the full path. Rather, it lets us illustrate parts of the
