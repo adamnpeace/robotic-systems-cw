@@ -69,18 +69,39 @@ class ReactivePlannerController(PlannerControllerBase):
         if self.aisleToDriveDown is None:
             self.aisleToDriveDown = aisle
 
-        # Implement your method here to construct a path which will drive the robot
+        
+
+        # Construct a path which will drive the robot
         # from the start to the goal via the aisle.
-        pathToGoalFound = self.planner.search(startCellCoords, goalCellCoords)    
+        aisleCoords = [
+            (133/5, 188/5),
+            (214/5, 188/5),
+            (294/5, 188/5),
+            (372/5, 188/5),
+            (449/5, 188/5)
+        ]
+
+        aisleCellCoords = aisleCoords[aisle]
+
+        pathToAisleFound = self.planner.search(startCellCoords, aisleCellCoords)
+        
+        # Extract the path to aisle center
+        currentPlannedPath = self.planner.extractPathToGoal()
+        
+
+        pathToGoalFound = self.planner.search(aisleCellCoords, goalCellCoords)
 
         # If we can't reach the goal, give up and return
-        if pathToGoalFound is False:
-            rospy.logwarn("Could not find a path to the goal at (%d, %d)", \
-                            goalCellCoords[0], goalCellCoords[1])
+        if not pathToGoalFound or not pathToAisleFound:
+            rospy.logwarn("Could not find a path to the goal at (%d, %d) through (%d, %d)", \
+                            goalCellCoords[0], goalCellCoords[1], aisleCellCoords[0], aisleCellCoords[1])
             return None
 
-        # Extract the path
-        currentPlannedPath = self.planner.extractPathToGoal()
+        aisleToGoalPath = self.planner.extractPathToGoal()
+
+        [currentPlannedPath.waypoints.append(b) for b in aisleToGoalPath.waypoints]
+        currentPlannedPath.travelCost += aisleToGoalPath.travelCost
+        currentPlannedPath.numberOfWaypoints += aisleToGoalPath.numberOfWaypoints
 
         return currentPlannedPath
 
