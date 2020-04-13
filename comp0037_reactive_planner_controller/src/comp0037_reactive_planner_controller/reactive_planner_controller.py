@@ -49,7 +49,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
     # Choose the subdquent aisle the robot will drive down
     def chooseAisle(self, startCellCoords, goalCellCoords):
-        return Aisle.B
+        return Aisle.C
 
     # Return whether the robot should wait for the obstacle to clear or not.
     def shouldWaitUntilTheObstacleClears(self, startCellCoords, goalCellCoords):
@@ -125,8 +125,8 @@ class ReactivePlannerController(PlannerControllerBase):
 
         # Work out the initial aisle to drive down
         # Or change the next line to select and isle
-        #aisleToDriveDown = self.chooseInitialAisle(startCellCoords, goalCellCoords)
-        aisleToDriveDown = self.chooseAisle(startCellCoords, goalCellCoords)
+        aisleToDriveDown = self.chooseInitialAisle(startCellCoords, goalCellCoords)
+        # aisleToDriveDown = self.chooseAisle(startCellCoords, goalCellCoords)
 
         # Reactive planner main loop - keep iterating until the goal is reached or the robot gets
         # stuck.
