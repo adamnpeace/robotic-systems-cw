@@ -49,7 +49,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
     # Choose the subdquent aisle the robot will drive down
     def chooseAisle(self, startCellCoords, goalCellCoords):
-        return Aisle.E
+        return Aisle.B
 
     # Return whether the robot should wait for the obstacle to clear or not.
     def shouldWaitUntilTheObstacleClears(self, startCellCoords, goalCellCoords):
@@ -87,7 +87,6 @@ class ReactivePlannerController(PlannerControllerBase):
         
         # Extract the path to aisle center
         currentPlannedPath = self.planner.extractPathToGoal()
-        
 
         pathToGoalFound = self.planner.search(aisleCellCoords, goalCellCoords)
 
@@ -102,6 +101,11 @@ class ReactivePlannerController(PlannerControllerBase):
         [currentPlannedPath.waypoints.append(b) for b in aisleToGoalPath.waypoints]
         currentPlannedPath.travelCost += aisleToGoalPath.travelCost
         currentPlannedPath.numberOfWaypoints += aisleToGoalPath.numberOfWaypoints
+
+        print 'final travel cost: ' + str(currentPlannedPath.travelCost)
+        print 'final waypoints num: ' + str(currentPlannedPath.numberOfWaypoints)
+
+        self.planner.displayFullPath(currentPlannedPath, 'yellow')
 
         return currentPlannedPath
 
@@ -120,7 +124,9 @@ class ReactivePlannerController(PlannerControllerBase):
         startCellCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
         # Work out the initial aisle to drive down
-        aisleToDriveDown = self.chooseInitialAisle(startCellCoords, goalCellCoords)
+        # Or change the next line to select and isle
+        #aisleToDriveDown = self.chooseInitialAisle(startCellCoords, goalCellCoords)
+        aisleToDriveDown = self.chooseAisle(startCellCoords, goalCellCoords)
 
         # Reactive planner main loop - keep iterating until the goal is reached or the robot gets
         # stuck.

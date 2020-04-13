@@ -236,6 +236,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Start at the goal and find the parent. Find the cost associated with the parent
         cell = pathEndCell.parent
         path.travelCost = self.computeLStageAdditiveCost(pathEndCell.parent, pathEndCell)
+        fullPath.travelCost = self.computeLStageAdditiveCost(pathEndCell.parent, pathEndCell)
         
         currentAngle = self.computeLStageAngle(pathEndCell.parent, pathEndCell)
 
@@ -248,16 +249,20 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
 
             newAngle = self.computeLStageAngle(cell.parent, cell)
             fullPath.waypoints.appendleft(cell)
+
+            #fullPath.travelCost = fullPath.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
             # Skips all waypoints which are on a line between 2 waypoints
             if newAngle != currentAngle:
                 path.waypoints.appendleft(cell)
                 path.travelCost = path.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
+                fullPath.travelCost = fullPath.travelCost + self.computeLStageAdditiveCost(cell.parent, cell)
 
                 newAngle = self.computeLStageAngle(cell.parent, cell)
             cell = cell.parent
             
         # Update the stats on the size of the path
         path.numberOfWaypoints = len(fullPath.waypoints)
+        fullPath.numberOfWaypoints = len(fullPath.waypoints)
 
         # Note that if we failed to reach the goal, the above mechanism computes a path length of 0.
         # Therefore, if we didn't reach the goal, change it to infinity
@@ -278,6 +283,13 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Return the path
         return fullPath
 
+    def displayFullPath(self, fullPath, colour):
+        if (self.showGraphics == True):
+            self.searchGridDrawer.update()
+            # self.searchGridDrawer.drawPathGraphicsWithCustomColour(path, colour)
+            self.searchGridDrawer.drawPathGraphicsWithCustomColour(fullPath, colour)
+            self.searchGridDrawer.waitForKeyPress()
+
     # Extract the path from a specified end cell to the start. This is not
     # necessarily the full path. Rather, it lets us illustrate parts of the
     # path.
@@ -288,6 +300,6 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
     # Extract the path between the start and goal.
     def extractPathToGoal(self):
         path = self.extractPathEndingAtCell(self.goal, 'yellow')
-       
+        
         return path
             
