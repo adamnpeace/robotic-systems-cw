@@ -31,6 +31,14 @@ class ReactivePlannerController(PlannerControllerBase):
 
         self.checkIfPathCurrentPathIsStillGood()
 
+    def findFirstObstacleCellOnPath(self):
+        # Returns index of obstacle in current path
+        for i, cell in enumerate(self.currentPlannedPath.waypoints):
+            if self.occupancyGrid.getCell(cell.coords[0], cell.coords[1]) == 1:
+                return i
+        else:
+            return -1
+
     def checkIfPathCurrentPathIsStillGood(self):
 
         # This methods needs to check if the current path, whose
@@ -39,8 +47,8 @@ class ReactivePlannerController(PlannerControllerBase):
                 
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
-
-        pass
+        if self.findFirstObstacleCellOnPath() > -1:
+            self.controller.stopDrivingToCurrentGoal()
 
     # Choose the first aisle the robot will initially drive down.
     # This is based on the prior.
@@ -51,13 +59,38 @@ class ReactivePlannerController(PlannerControllerBase):
     def chooseAisle(self, startCellCoords, goalCellCoords):
         return Aisle.C
 
+    def isWaypointObstacle(self, waypoint):
+        return self.occupancyGrid.getCell(w.coords[0], w.coords[1]) == 1
+
     # Return whether the robot should wait for the obstacle to clear or not.
     def shouldWaitUntilTheObstacleClears(self, startCellCoords, goalCellCoords):
-        return False
+
+        obstacleIndex = self.findFirstObstacleCellOnPath()
+        if obstacleIndex == -1:
+            return True
+
+        waitCost = 2 + obstacleIndex
+
+        obstacleCell = self.currentPlannedPath.waypoints[obstacleIndex]
+        obstacle = obstacleCell.coords[0], obstacleCell.coords[1]
+
+        newAisle = self.chooseAisle(*obstacle)
+        reroutePath = self.planPathToGoalViaAisle(*obstacle, aisle=newAisle)
+        rerouteCost = len(reroutePath.waypoints)
+
+        if waitCost < rerouteCost:
+            return True
+        else:
+            return False
 
     # This method will wait until the obstacle has cleared and the robot can move.
     def waitUntilTheObstacleClears(self):
-        pass
+        while True:
+            for w in self.currentPlannedPath.waypoints:
+                if self.isWaypointObstacle(w):
+                    break
+            else:
+                return
     
     # Plan a path to the goal which will go down the designated aisle. The code, as
     # currently implemented simply tries to drive from the start to the goal without
