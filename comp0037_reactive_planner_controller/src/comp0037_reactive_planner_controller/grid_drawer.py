@@ -94,6 +94,7 @@ class BaseDrawer(object):
             pass
 
 class SearchGridDrawer(BaseDrawer):
+    initial_cells = []
 
     def __init__(self, title, searchGrid, maximumWindowHeightInPixels):
         BaseDrawer.__init__(self, title, searchGrid.getExtentInCells(), 
@@ -128,20 +129,27 @@ class SearchGridDrawer(BaseDrawer):
                 return
             for j in range(cellExtent[1]):
                 cellLabel = self.searchGrid.getCellFromCoords((i, j)).label
-                if cellLabel == CellLabel.OBSTRUCTED:
-                    colour = 'purple'		    
-                elif cellLabel == CellLabel.START:
-                    colour = 'green'
-                elif cellLabel == CellLabel.GOAL:
-                    colour = 'blue'
-                elif cellLabel == CellLabel.UNVISITED:
-                    colour = 'gray'
-	  	    
-                elif cellLabel == CellLabel.DEAD:
-                    colour = 'black'
-                else:
-                    colour = 'white'
-                self.rectangles[i][j].setFill(colour);
+                if (SearchGridDrawer.initial_cells.count((i, j)) == 0 or 
+                (SearchGridDrawer.initial_cells.count((i, j)) == 1 and 
+                (cellLabel != CellLabel.OBSTRUCTED and cellLabel != CellLabel.UNVISITED))):
+                    if cellLabel == CellLabel.OBSTRUCTED:
+                        colour = 'purple'		    
+                    elif cellLabel == CellLabel.START:
+                        colour = 'green'
+                        SearchGridDrawer.initial_cells += [(i, j)]
+                    elif cellLabel == CellLabel.GOAL:
+                        colour = 'blue'
+                        SearchGridDrawer.initial_cells += [(i, j)]
+                    elif cellLabel == CellLabel.UNVISITED:
+                        colour = 'gray'
+                
+                    elif cellLabel == CellLabel.DEAD:
+                        colour = 'black'
+                        SearchGridDrawer.initial_cells += [(i, j)]
+                    else:
+                        colour = 'white'
+                        SearchGridDrawer.initial_cells += [(i, j)]
+                    self.rectangles[i][j].setFill(colour);
 
     # Draw the path with a custom colour
     def drawPathGraphicsWithCustomColour(self, path, colour):

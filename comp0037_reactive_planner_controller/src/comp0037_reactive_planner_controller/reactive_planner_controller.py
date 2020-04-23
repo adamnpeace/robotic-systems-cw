@@ -45,7 +45,7 @@ class ReactivePlannerController(PlannerControllerBase):
     # Choose the first aisle the robot will initially drive down.
     # This is based on the prior.
     def chooseInitialAisle(self, startCellCoords, goalCellCoords):
-        return Aisle.A
+        return Aisle.C
 
     # Choose the subdquent aisle the robot will drive down
     def chooseAisle(self, startCellCoords, goalCellCoords):
@@ -74,11 +74,11 @@ class ReactivePlannerController(PlannerControllerBase):
         # Construct a path which will drive the robot
         # from the start to the goal via the aisle.
         aisleCoords = [
-            (133/5, 188/5),
-            (214/5, 188/5),
-            (294/5, 188/5),
-            (372/5, 188/5),
-            (449/5, 188/5)
+            (133/5, 75/5),
+            (214/5, 75/5),
+            (294/5, 75/5),
+            (372/5, 75/5),
+            (449/5, 75/5)
         ]
 
         aisleCellCoords = aisleCoords[aisle]
