@@ -69,7 +69,12 @@ class ReactivePlannerController(PlannerControllerBase):
         if obstacleIndex == -1:
             return True
 
-        waitCost = 2 + obstacleIndex
+        for currentCellindex, cell in enumerate(self.currentPlannedPath.waypoints):
+            if cell.coords == (startCellCoords, goalCellCoords):
+                break
+
+        
+        waitCost = 2 + (obstacleIndex - currentCellindex)
 
         obstacleCell = self.currentPlannedPath.waypoints[obstacleIndex]
         obstacle = obstacleCell.coords[0], obstacleCell.coords[1]
