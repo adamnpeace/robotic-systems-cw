@@ -70,7 +70,7 @@ class ReactivePlannerController(PlannerControllerBase):
             return True
 
         for currentCellindex, cell in enumerate(self.currentPlannedPath.waypoints):
-            if cell.coords == (startCellCoords, goalCellCoords):
+            if cell.coords == startCellCoords:
                 break
 
         
