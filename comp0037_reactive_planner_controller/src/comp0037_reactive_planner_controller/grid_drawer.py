@@ -96,6 +96,8 @@ class BaseDrawer(object):
 class SearchGridDrawer(BaseDrawer):
     initial_cells = []
 
+    iteration = 0
+
     def __init__(self, title, searchGrid, maximumWindowHeightInPixels):
         BaseDrawer.__init__(self, title, searchGrid.getExtentInCells(), 
                             maximumWindowHeightInPixels)
@@ -121,6 +123,7 @@ class SearchGridDrawer(BaseDrawer):
 	self.searchGrid=new_sg
             
     def drawPlanGraphics(self):
+        print "iter " + str(SearchGridDrawer.iteration)
         
         # First iterate over all the cells and mark them up
         cellExtent = self.searchGrid.getExtentInCells()
@@ -150,12 +153,14 @@ class SearchGridDrawer(BaseDrawer):
                         colour = 'white'
                         SearchGridDrawer.initial_cells += [(i, j)]
                     self.rectangles[i][j].setFill(colour);
+        SearchGridDrawer.iteration +=1
 
     # Draw the path with a custom colour
     def drawPathGraphicsWithCustomColour(self, path, colour):
         for p in path.waypoints:
             self.rectangles[p.coords[0]][p.coords[1]].setFill(colour)
             
+        self.rectangles[path.waypoints[0].coords[0]][path.waypoints[0].coords[1]].setFill('green')
         self.drawStartAndGoalGraphics()
         self.window.update()
         self.window.flush()
