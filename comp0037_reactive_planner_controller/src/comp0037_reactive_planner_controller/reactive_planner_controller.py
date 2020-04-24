@@ -56,10 +56,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
     # Choose the subdquent aisle the robot will drive down
     def chooseAisle(self, startCellCoords, goalCellCoords):
-        print "returining aisle " + str((self.aisleToDriveDown + 1))
-        # return self.aisleToDriveDown + 1
-
-        return Aisle.C
+        return self.aisleToDriveDown + 1
 
     def isWaypointObstacle(self, waypoint):
         return self.occupancyGrid.getCell(waypoint.coords[0], waypoint.coords[1]) == 1
@@ -75,24 +72,18 @@ class ReactivePlannerController(PlannerControllerBase):
         start = (current_pose.x, current_pose.y)
         startCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
-        print "x is " + str(startCoords[0])
-        print "y is " + str(startCoords[1])
-
         for currentCellindex, cell in enumerate(self.currentPlannedPath.waypoints):
             # if cell.coords == startCoords:
             #     break
             if (cell.coords == startCoords or (abs(cell.coords[0] - startCoords[0]) == 1 and cell.coords[1] - startCoords[1] == 0) or 
             (cell.coords[0] - startCoords[0] == 0 and abs(cell.coords[1] - startCoords[1]) == 1)):
                 break
-
-        print "obstacle at " + str(obstacleIndex)
-        print "current cell  at " + str(currentCellindex)
         
         waitCost = 2 + (obstacleIndex - currentCellindex)
-        print "wait cost " + str(waitCost)
+        # print "wait cost " + str(waitCost)
 
         finalCost = waitCost + len(self.currentPlannedPath.waypoints) - obstacleIndex
-        print "final cost " + str(finalCost)
+        # print "final cost " + str(finalCost)
 
         # obstacleCell = self.currentPlannedPath.waypoints[obstacleIndex]
         # obstacle = obstacleCell.coords[0], obstacleCell.coords[1]
@@ -104,6 +95,12 @@ class ReactivePlannerController(PlannerControllerBase):
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
         reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle, is_replan=0, aisle_to_goal=None)
         rerouteCost = len(reroutePath.waypoints)
+
+        print "reroute cost = " + str(rerouteCost)
+        print "og cost = " + str(finalCost)
+
+        max_lambda = 2 / (rerouteCost - finalCost) 
+        print "max lambda = " + str(max_lambda)
 
         self.planner.displayFullPath(reroutePath, 'orange', needs_update=0)
 
