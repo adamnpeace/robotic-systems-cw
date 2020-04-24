@@ -97,7 +97,7 @@ class ReactivePlannerController(PlannerControllerBase):
         rerouteCost = len(reroutePath.waypoints)
 
         print "reroute cost = " + str(rerouteCost)
-        print "og cost = " + str(finalCost)
+        print "waiting cost = " + str(finalCost)
 
         max_lambda = 2 / (rerouteCost - finalCost) 
         print "max lambda = " + str(max_lambda)
