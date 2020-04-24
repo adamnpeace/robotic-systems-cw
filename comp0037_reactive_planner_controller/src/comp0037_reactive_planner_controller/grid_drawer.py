@@ -96,8 +96,6 @@ class BaseDrawer(object):
 class SearchGridDrawer(BaseDrawer):
     initial_cells = []
 
-    iteration = 0
-
     def __init__(self, title, searchGrid, maximumWindowHeightInPixels):
         BaseDrawer.__init__(self, title, searchGrid.getExtentInCells(), 
                             maximumWindowHeightInPixels)
@@ -108,10 +106,13 @@ class SearchGridDrawer(BaseDrawer):
         self.goal = None
 
     # Go through and draw all objects        
-    def update(self):
+    def update(self, needs_update):
         
         # Draw the current plan
-        self.drawPlanGraphics()
+        if needs_update==1:
+            self.drawPlanGraphics(needs_update=1)
+        else:
+            self.drawPlanGraphics(needs_update=0)
         
         # Overlay on top the start and the goal
         self.drawStartAndGoalGraphics()
@@ -122,38 +123,55 @@ class SearchGridDrawer(BaseDrawer):
     def setSearchGrid(self,new_sg):
 	self.searchGrid=new_sg
             
-    def drawPlanGraphics(self):
-        print "iter " + str(SearchGridDrawer.iteration)
-        
+    def drawPlanGraphics(self, needs_update):        
         # First iterate over all the cells and mark them up
         cellExtent = self.searchGrid.getExtentInCells()
-        for i in range(cellExtent[0]):
-            if rospy.is_shutdown():
-                return
-            for j in range(cellExtent[1]):
-                cellLabel = self.searchGrid.getCellFromCoords((i, j)).label
-                if (SearchGridDrawer.initial_cells.count((i, j)) == 0 or 
-                (SearchGridDrawer.initial_cells.count((i, j)) == 1 and 
-                (cellLabel != CellLabel.OBSTRUCTED and cellLabel != CellLabel.UNVISITED))):
+        if needs_update == 0:
+            for i in range(cellExtent[0]):
+                if rospy.is_shutdown():
+                    return
+                for j in range(cellExtent[1]):
+                    cellLabel = self.searchGrid.getCellFromCoords((i, j)).label
+                    if (SearchGridDrawer.initial_cells.count((i, j)) == 0 or 
+                    (SearchGridDrawer.initial_cells.count((i, j)) == 1 and 
+                    (cellLabel != CellLabel.OBSTRUCTED and cellLabel != CellLabel.UNVISITED))):
+                        if cellLabel == CellLabel.OBSTRUCTED:
+                            colour = 'purple'		    
+                        elif cellLabel == CellLabel.START:
+                            colour = 'green'
+                            SearchGridDrawer.initial_cells += [(i, j)]
+                        elif cellLabel == CellLabel.GOAL:
+                            colour = 'blue'
+                            SearchGridDrawer.initial_cells += [(i, j)]
+                        elif cellLabel == CellLabel.UNVISITED:
+                            colour = 'gray'
+                    
+                        elif cellLabel == CellLabel.DEAD:
+                            colour = 'black'
+                            SearchGridDrawer.initial_cells += [(i, j)]
+                        else:
+                            colour = 'white'
+                            SearchGridDrawer.initial_cells += [(i, j)]
+                        self.rectangles[i][j].setFill(colour)
+        else:
+            for i in range(cellExtent[0]):
+                if rospy.is_shutdown():
+                    return
+                for j in range(cellExtent[1]):
+                    cellLabel = self.searchGrid.getCellFromCoords((i, j)).label
                     if cellLabel == CellLabel.OBSTRUCTED:
                         colour = 'purple'		    
                     elif cellLabel == CellLabel.START:
                         colour = 'green'
-                        SearchGridDrawer.initial_cells += [(i, j)]
                     elif cellLabel == CellLabel.GOAL:
                         colour = 'blue'
-                        SearchGridDrawer.initial_cells += [(i, j)]
                     elif cellLabel == CellLabel.UNVISITED:
                         colour = 'gray'
-                
                     elif cellLabel == CellLabel.DEAD:
                         colour = 'black'
-                        SearchGridDrawer.initial_cells += [(i, j)]
                     else:
                         colour = 'white'
-                        SearchGridDrawer.initial_cells += [(i, j)]
-                    self.rectangles[i][j].setFill(colour);
-        SearchGridDrawer.iteration +=1
+                    self.rectangles[i][j].setFill(colour)
 
     # Draw the path with a custom colour
     def drawPathGraphicsWithCustomColour(self, path, colour):
@@ -161,6 +179,7 @@ class SearchGridDrawer(BaseDrawer):
             self.rectangles[p.coords[0]][p.coords[1]].setFill(colour)
             
         self.rectangles[path.waypoints[0].coords[0]][path.waypoints[0].coords[1]].setFill('green')
+        self.rectangles[path.waypoints[len(path.waypoints)-1].coords[0]][path.waypoints[len(path.waypoints)-1].coords[1]].setFill('blue')
         self.drawStartAndGoalGraphics()
         self.window.update()
         self.window.flush()

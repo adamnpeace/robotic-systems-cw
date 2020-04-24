@@ -274,7 +274,7 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         
         # Draw the path if requested
         if (self.showGraphics == True):
-            self.searchGridDrawer.update()
+            self.searchGridDrawer.update(0)
             # self.searchGridDrawer.drawPathGraphicsWithCustomColour(path, colour)
             self.searchGridDrawer.drawPathGraphicsWithCustomColour(fullPath, colour)
             self.searchGridDrawer.waitForKeyPress()
@@ -283,9 +283,12 @@ class GeneralForwardSearchAlgorithm(PlannerBase):
         # Return the path
         return fullPath
 
-    def displayFullPath(self, fullPath, colour):
+    def displayFullPath(self, fullPath, colour, needs_update):
         if (self.showGraphics == True):
-            self.searchGridDrawer.update()
+            if needs_update==1:
+                self.searchGridDrawer.update(needs_update=1)
+            else:
+                self.searchGridDrawer.update(needs_update=0)
             # self.searchGridDrawer.drawPathGraphicsWithCustomColour(path, colour)
             self.searchGridDrawer.drawPathGraphicsWithCustomColour(fullPath, colour)
             self.searchGridDrawer.waitForKeyPress()

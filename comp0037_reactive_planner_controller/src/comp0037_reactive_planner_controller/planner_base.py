@@ -120,7 +120,7 @@ class PlannerBase(object):
         # Reset the draw counter
         self.iterationsSinceLastGraphicsUpdate = 0
 
-        self.searchGridDrawer.update()
+        self.searchGridDrawer.update(0)
         self.occupancyGridDrawer.update()
         time.sleep(self.pauseTimeInSeconds)
 

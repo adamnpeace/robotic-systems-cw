@@ -9,7 +9,6 @@ from comp0037_mapper.msg import *
 from comp0037_reactive_planner_controller.aisle import Aisle
 
 class ReactivePlannerController(PlannerControllerBase):
-
     def __init__(self, occupancyGrid, planner, controller):
         PlannerControllerBase.__init__(self, occupancyGrid, planner, controller)
         
@@ -47,7 +46,7 @@ class ReactivePlannerController(PlannerControllerBase):
                 
         # If the route is not viable any more, call
         # self.controller.stopDrivingToCurrentGoal()
-        if self.findFirstObstacleCellOnPath() > -1:
+        if self.findFirstObstacleCellOnPath():
             self.controller.stopDrivingToCurrentGoal()
 
     # Choose the first aisle the robot will initially drive down.
@@ -103,8 +102,10 @@ class ReactivePlannerController(PlannerControllerBase):
         # startCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
-        reroutePath = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle)
+        reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle, is_replan=0, aisle_to_goal=None)
         rerouteCost = len(reroutePath.waypoints)
+
+        self.planner.displayFullPath(reroutePath, 'orange', needs_update=0)
 
         if finalCost < rerouteCost:
             print "waiting"
@@ -126,7 +127,7 @@ class ReactivePlannerController(PlannerControllerBase):
     # Plan a path to the goal which will go down the designated aisle. The code, as
     # currently implemented simply tries to drive from the start to the goal without
     # considering the aisle.
-    def planPathToGoalViaAisle(self, startCellCoords, goalCellCoords, aisle):
+    def planPathToGoalViaAisle(self, startCellCoords, goalCellCoords, aisle, is_replan, aisle_to_goal):
 
         # Note that, if the robot has waited, it might be tasked to drive down the
         # aisle it's currently on. Your code should handle this case.
@@ -148,19 +149,23 @@ class ReactivePlannerController(PlannerControllerBase):
         aisleCellCoords = aisleCoords[aisle]
 
         pathToAisleFound = self.planner.search(startCellCoords, aisleCellCoords)
+
+        aisleToGoalPath = None
         
         # Extract the path to aisle center
         currentPlannedPath = self.planner.extractPathToGoal()
+        if aisle_to_goal == None:
+            pathToGoalFound = self.planner.search(aisleCellCoords, goalCellCoords)
 
-        pathToGoalFound = self.planner.search(aisleCellCoords, goalCellCoords)
+            # If we can't reach the goal, give up and return
+            if not pathToGoalFound or not pathToAisleFound:
+                rospy.logwarn("Could not find a path to the goal at (%d, %d) through (%d, %d)", \
+                                goalCellCoords[0], goalCellCoords[1], aisleCellCoords[0], aisleCellCoords[1])
+                return None
 
-        # If we can't reach the goal, give up and return
-        if not pathToGoalFound or not pathToAisleFound:
-            rospy.logwarn("Could not find a path to the goal at (%d, %d) through (%d, %d)", \
-                            goalCellCoords[0], goalCellCoords[1], aisleCellCoords[0], aisleCellCoords[1])
-            return None
-
-        aisleToGoalPath = self.planner.extractPathToGoal()
+            aisleToGoalPath = self.planner.extractPathToGoal()
+        else:
+            aisleToGoalPath = aisle_to_goal
 
         [currentPlannedPath.waypoints.append(b) for b in aisleToGoalPath.waypoints]
         currentPlannedPath.travelCost += aisleToGoalPath.travelCost
@@ -168,16 +173,19 @@ class ReactivePlannerController(PlannerControllerBase):
 
         print 'final travel cost: ' + str(currentPlannedPath.travelCost)
         print 'final waypoints num: ' + str(currentPlannedPath.numberOfWaypoints)
+        if is_replan:
+            self.planner.displayFullPath(currentPlannedPath, 'yellow', needs_update=1)
+        else:
+            self.planner.displayFullPath(currentPlannedPath, 'yellow', needs_update=0)
 
-        self.planner.displayFullPath(currentPlannedPath, 'yellow')
-
-        return currentPlannedPath
+        return currentPlannedPath, aisleToGoalPath
 
     # This method drives the robot from the start to the final goal. It includes
     # choosing an aisle to drive down and both waiting and replanning behaviour.
     # Note that driving down an aisle is like introducing an intermediate waypoint.
 
     def driveToGoal(self, goal):
+        is_post_wait = 0
 
         # Get the goal coordinate in cells
         goalCellCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates((goal.x,goal.y))
@@ -194,19 +202,24 @@ class ReactivePlannerController(PlannerControllerBase):
 
         # Reactive planner main loop - keep iterating until the goal is reached or the robot gets
         # stuck.
+        aisle_to_goal = None
         
         while rospy.is_shutdown() is False:
 
             # Plan a path from the robot's current position to the goal. This is called even
             # if the robot waited and used its existing path. This is more robust than, say,
-            # stripping cells from the existing path.           
-            
+            # stripping cells from the existing path.                           
             print 'Planning a new path: start=' + str(start) + '; goal=' + str(goal)
-            
-            # Plan a path using the current occupancy grid
-            self.gridUpdateLock.acquire()
-            self.currentPlannedPath = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown)
-            self.gridUpdateLock.release()
+                
+                # Plan a path using the current occupancy grid
+            if (is_post_wait == 0):
+                self.gridUpdateLock.acquire()
+                self.currentPlannedPath, aisle_to_goal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, is_replan=0, aisle_to_goal=None)
+                self.gridUpdateLock.release()
+            else:
+                self.gridUpdateLock.acquire()
+                self.currentPlannedPath, aisle_to_goal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, is_replan=1, aisle_to_goal=aisle_to_goal)
+                self.gridUpdateLock.release()
 
             # If we couldn't find a path, give up
             if self.currentPlannedPath is None:
@@ -240,6 +253,7 @@ class ReactivePlannerController(PlannerControllerBase):
             # we should drive down.
             if waitingGame is True:
                 self.waitUntilTheObstacleClears()
+                is_post_wait = 1
             else:
                 aisleToDriveDown = self.chooseAisle(startCellCoords, goalCellCoords)
 
