@@ -106,13 +106,13 @@ class SearchGridDrawer(BaseDrawer):
         self.goal = None
 
     # Go through and draw all objects        
-    def update(self, needs_update):
+    def update(self, doUpdate):
         
         # Draw the current plan
-        if needs_update==1:
-            self.drawPlanGraphics(needs_update=1)
+        if doUpdate==1:
+            self.drawPlanGraphics(doUpdate=1)
         else:
-            self.drawPlanGraphics(needs_update=0)
+            self.drawPlanGraphics(doUpdate=0)
         
         # Overlay on top the start and the goal
         self.drawStartAndGoalGraphics()
@@ -123,10 +123,10 @@ class SearchGridDrawer(BaseDrawer):
     def setSearchGrid(self,new_sg):
 	self.searchGrid=new_sg
             
-    def drawPlanGraphics(self, needs_update):        
+    def drawPlanGraphics(self, doUpdate):        
         # First iterate over all the cells and mark them up
         cellExtent = self.searchGrid.getExtentInCells()
-        if needs_update == 0:
+        if doUpdate == 0:
             for i in range(cellExtent[0]):
                 if rospy.is_shutdown():
                     return

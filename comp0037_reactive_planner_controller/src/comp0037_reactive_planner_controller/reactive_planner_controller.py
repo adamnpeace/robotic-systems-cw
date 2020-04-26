@@ -52,7 +52,16 @@ class ReactivePlannerController(PlannerControllerBase):
     # Choose the first aisle the robot will initially drive down.
     # This is based on the prior.
     def chooseInitialAisle(self, startCellCoords, goalCellCoords):
-        return Aisle.B
+        startAisle = Aisle.B
+        path, _ = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, startAisle)
+        
+        nextAisle = self.chooseAisle(startCellCoords, goalCellCoords)
+        nextPath, _ = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, nextAisle)
+
+        if path.numberOfWaypoints + (0.8 * 2) < nextPath.numberOfWaypoints:
+            return startAisle
+        else:
+            return nextAisle
 
     # Choose the subdquent aisle the robot will drive down
     def chooseAisle(self, startCellCoords, goalCellCoords):
@@ -93,7 +102,7 @@ class ReactivePlannerController(PlannerControllerBase):
         # startCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
-        reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle, is_replan=0, aisle_to_goal=None)
+        reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle)
         rerouteCost = len(reroutePath.waypoints)
 
         print "reroute cost = " + str(rerouteCost)
@@ -102,7 +111,7 @@ class ReactivePlannerController(PlannerControllerBase):
         max_lambda = 2 / (rerouteCost - finalCost) 
         print "max lambda = " + str(max_lambda)
 
-        self.planner.displayFullPath(reroutePath, 'orange', needs_update=0)
+        self.planner.displayFullPath(reroutePath, 'orange', doUpdate=0)
 
         if finalCost < rerouteCost:
             print "waiting"
@@ -124,7 +133,7 @@ class ReactivePlannerController(PlannerControllerBase):
     # Plan a path to the goal which will go down the designated aisle. The code, as
     # currently implemented simply tries to drive from the start to the goal without
     # considering the aisle.
-    def planPathToGoalViaAisle(self, startCellCoords, goalCellCoords, aisle, is_replan, aisle_to_goal):
+    def planPathToGoalViaAisle(self, startCellCoords, goalCellCoords, aisle, doReplan=False, aisleToGoal=None):
 
         # Note that, if the robot has waited, it might be tasked to drive down the
         # aisle it's currently on. Your code should handle this case.
@@ -151,7 +160,7 @@ class ReactivePlannerController(PlannerControllerBase):
         
         # Extract the path to aisle center
         currentPlannedPath = self.planner.extractPathToGoal()
-        if aisle_to_goal == None:
+        if aisleToGoal == None:
             pathToGoalFound = self.planner.search(aisleCellCoords, goalCellCoords)
 
             # If we can't reach the goal, give up and return
@@ -162,7 +171,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
             aisleToGoalPath = self.planner.extractPathToGoal()
         else:
-            aisleToGoalPath = aisle_to_goal
+            aisleToGoalPath = aisleToGoal
 
         [currentPlannedPath.waypoints.append(b) for b in aisleToGoalPath.waypoints]
         currentPlannedPath.travelCost += aisleToGoalPath.travelCost
@@ -170,10 +179,10 @@ class ReactivePlannerController(PlannerControllerBase):
 
         print 'final travel cost: ' + str(currentPlannedPath.travelCost)
         print 'final waypoints num: ' + str(currentPlannedPath.numberOfWaypoints)
-        if is_replan:
-            self.planner.displayFullPath(currentPlannedPath, 'yellow', needs_update=1)
+        if doReplan:
+            self.planner.displayFullPath(currentPlannedPath, 'yellow', doUpdate=True)
         else:
-            self.planner.displayFullPath(currentPlannedPath, 'yellow', needs_update=0)
+            self.planner.displayFullPath(currentPlannedPath, 'yellow', doUpdate=False)
 
         return currentPlannedPath, aisleToGoalPath
 
@@ -199,7 +208,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
         # Reactive planner main loop - keep iterating until the goal is reached or the robot gets
         # stuck.
-        aisle_to_goal = None
+        aisleToGoal = None
         
         while rospy.is_shutdown() is False:
 
@@ -211,11 +220,11 @@ class ReactivePlannerController(PlannerControllerBase):
                 # Plan a path using the current occupancy grid
             if (is_post_wait == 0):
                 self.gridUpdateLock.acquire()
-                self.currentPlannedPath, aisle_to_goal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, is_replan=0, aisle_to_goal=None)
+                self.currentPlannedPath, aisleToGoal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown)
                 self.gridUpdateLock.release()
             else:
                 self.gridUpdateLock.acquire()
-                self.currentPlannedPath, aisle_to_goal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, is_replan=1, aisle_to_goal=aisle_to_goal)
+                self.currentPlannedPath, aisleToGoal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, doReplan=True, aisleToGoal=aisleToGoal)
                 self.gridUpdateLock.release()
 
             # If we couldn't find a path, give up
