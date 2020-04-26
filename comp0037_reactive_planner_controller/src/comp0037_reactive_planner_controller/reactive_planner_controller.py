@@ -58,9 +58,16 @@ class ReactivePlannerController(PlannerControllerBase):
         nextAisle = self.chooseAisle(startCellCoords, goalCellCoords)
         nextPath, _ = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, nextAisle)
 
+        self.planner.displayFullPath(nextPath, 'orange', doUpdate=0)
+
+        max_lambda = (nextPath.numberOfWaypoints - path.numberOfWaypoints) / (0.8 * 2)
+        print "max lambda to go down alternative aisle (C) = " + str(max_lambda)
+
         if path.numberOfWaypoints + (0.8 * 2) < nextPath.numberOfWaypoints:
+            print "should use initial aisle"
             return startAisle
         else:
+            print "should use an alternative aisle"
             return nextAisle
 
     # Choose the subdquent aisle the robot will drive down
