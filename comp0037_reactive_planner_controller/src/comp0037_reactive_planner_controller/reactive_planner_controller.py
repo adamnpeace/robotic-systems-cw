@@ -60,10 +60,13 @@ class ReactivePlannerController(PlannerControllerBase):
 
         self.planner.displayFullPath(nextPath, 'orange', doUpdate=0)
 
-        max_lambda = (0.8 * 2) / (nextPath.numberOfWaypoints - path.numberOfWaypoints)
+        print "path cost of aisle B = " + str(path.travelCost)
+        print "path cost of aisle C = " + str(nextPath.travelCost)
+        
+        max_lambda = (0.8 * 2) / (nextPath.travelCost - path.travelCost)
         print "max lambda to go down alternative aisle (C) = " + str(max_lambda)
 
-        if path.numberOfWaypoints + (0.8 * 2) < nextPath.numberOfWaypoints:
+        if path.travelCost + (0.8 * 2) < nextPath.travelCost:
             print "should use initial aisle"
             return startAisle
         else:
