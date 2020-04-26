@@ -113,7 +113,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
         reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle)
-        rerouteCost = len(reroutePath.travel)
+        rerouteCost = len(reroutePath.waypoints)
 
         print "reroute cost = " + str(rerouteCost)
         print "waiting cost = " + str(finalCost)
