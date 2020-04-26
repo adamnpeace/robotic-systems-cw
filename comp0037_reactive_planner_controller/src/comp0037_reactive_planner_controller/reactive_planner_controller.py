@@ -126,7 +126,6 @@ class ReactivePlannerController(PlannerControllerBase):
                 if self.isWaypointObstacle(w):
                     break
             else:
-                # driveToGoal()
                 return
     
     # Plan a path to the goal which will go down the designated aisle. The code, as
