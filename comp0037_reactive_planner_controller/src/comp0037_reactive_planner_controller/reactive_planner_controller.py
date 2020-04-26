@@ -227,7 +227,7 @@ class ReactivePlannerController(PlannerControllerBase):
                 # Plan a path using the current occupancy grid
             if (is_post_wait == 0):
                 self.gridUpdateLock.acquire()
-                self.currentPlannedPath, aisleToGoal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown)
+                self.currentPlannedPath, aisleToGoal = self.planPathToGoalViaAisle(startCellCoords, goalCellCoords, aisleToDriveDown, doReplan=True)
                 self.gridUpdateLock.release()
             else:
                 self.gridUpdateLock.acquire()
