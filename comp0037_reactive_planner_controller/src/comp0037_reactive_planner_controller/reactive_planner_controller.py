@@ -60,7 +60,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
         self.planner.displayFullPath(nextPath, 'orange', doUpdate=0)
 
-        max_lambda = (nextPath.numberOfWaypoints - path.numberOfWaypoints) / (0.8 * 2)
+        max_lambda = (0.8 * 2) / (nextPath.numberOfWaypoints - path.numberOfWaypoints)
         print "max lambda to go down alternative aisle (C) = " + str(max_lambda)
 
         if path.numberOfWaypoints + (0.8 * 2) < nextPath.numberOfWaypoints:
@@ -110,7 +110,7 @@ class ReactivePlannerController(PlannerControllerBase):
 
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
         reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle)
-        rerouteCost = len(reroutePath.waypoints)
+        rerouteCost = len(reroutePath.travel)
 
         print "reroute cost = " + str(rerouteCost)
         print "waiting cost = " + str(finalCost)
