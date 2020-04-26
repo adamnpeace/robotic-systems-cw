@@ -118,8 +118,8 @@ class ReactivePlannerController(PlannerControllerBase):
         print "reroute cost = " + str(rerouteCost)
         print "waiting cost = " + str(finalCost)
 
-        max_lambda = 2 / (rerouteCost - finalCost) 
-        print "max lambda = " + str(max_lambda)
+        max_lambda = 2.0 / (rerouteCost - finalCost + 2) # to account for L_W = 2 added to finalCost before
+        print "max lambda to reroute = " + str(max_lambda)
 
         self.planner.displayFullPath(reroutePath, 'orange', doUpdate=0)
 
@@ -274,5 +274,3 @@ class ReactivePlannerController(PlannerControllerBase):
                 aisleToDriveDown = self.chooseAisle(startCellCoords, goalCellCoords)
 
         return False
-            
-            
