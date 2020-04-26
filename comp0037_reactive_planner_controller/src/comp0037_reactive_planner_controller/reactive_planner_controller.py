@@ -92,24 +92,13 @@ class ReactivePlannerController(PlannerControllerBase):
         startCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
         for currentCellindex, cell in enumerate(self.currentPlannedPath.waypoints):
-            # if cell.coords == startCoords:
-            #     break
             if (cell.coords == startCoords or (abs(cell.coords[0] - startCoords[0]) == 1 and cell.coords[1] - startCoords[1] == 0) or 
             (cell.coords[0] - startCoords[0] == 0 and abs(cell.coords[1] - startCoords[1]) == 1)):
                 break
         
         waitCost = 2 + (obstacleIndex - currentCellindex)
-        # print "wait cost " + str(waitCost)
 
         finalCost = waitCost + len(self.currentPlannedPath.waypoints) - obstacleIndex
-        # print "final cost " + str(finalCost)
-
-        # obstacleCell = self.currentPlannedPath.waypoints[obstacleIndex]
-        # obstacle = obstacleCell.coords[0], obstacleCell.coords[1]
-        
-        # current_pose = self.occupancyGrid.getCurrentPose()
-        # start = (current_pose.x, current_pose.y)
-        # startCoords = self.occupancyGrid.getCellCoordinatesFromWorldCoordinates(start)
 
         newAisle = self.chooseAisle(startCoords, goalCellCoords)
         reroutePath, aisletogoal = self.planPathToGoalViaAisle(startCoords, goalCellCoords, aisle=newAisle)
